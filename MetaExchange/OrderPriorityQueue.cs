@@ -10,13 +10,15 @@ namespace MetaExchange
             {
                 // first check balance constraints
                 bool orderPossible1, orderPossible2;
-                if (o1?.Type == ExchangeOrder.OrderType.Buy)
+                if (o1?.Type == ExchangeOrder.OrderType.Sell)
                 {
+                    // the order is selling, we're buying so we need to have proper EUR balance
                     orderPossible1 = o1?.MyExchangeInfo?.BalanceEUR > 0.0;
                     orderPossible2 = o2?.MyExchangeInfo?.BalanceEUR > 0.0;
                 }
                 else
                 {
+                    // the order is buying, we're selling so we need to have proper BTC balance
                     orderPossible1 = o1?.MyExchangeInfo?.BalanceBTC > 0.0;
                     orderPossible2 = o2?.MyExchangeInfo?.BalanceBTC > 0.0;
                 }

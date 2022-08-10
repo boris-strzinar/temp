@@ -5,10 +5,20 @@ namespace MetaExchange
 {
     public class OrderBookService : IOrderBookService
     {
-        private OrderPriorityQueue _asks = new OrderPriorityQueue();
-        private OrderPriorityQueue _bids = new OrderPriorityQueue();
+        private OrderPriorityQueue _asks;
+        private OrderPriorityQueue _bids;
 
-        public OrderPriorityQueue GetBids() { return _bids; }
+        public OrderBookService()
+        {
+            _asks = new OrderPriorityQueue();
+            _bids = new OrderPriorityQueue();
+        }
+
+        public OrderBookService(OrderPriorityQueue asks, OrderPriorityQueue bids)
+        {
+            _asks = asks;
+            _bids = bids;
+        }
 
         public string? ReadOrderBookDataFile(string path, long limit)
         {
@@ -50,7 +60,16 @@ namespace MetaExchange
 
             do
             {
-                var order = _asks.Peek();
+                ExchangeOrder order;
+                try
+                {
+                    order = _asks.Peek();
+                }
+                catch (InvalidOperationException)
+                {
+                    break;
+                }
+
                 if (order.MyExchangeInfo.BalanceEUR > 0.0)
                 {
                     var currentOrderAmount = Math.Min(order.Amount, amount);
@@ -60,17 +79,20 @@ namespace MetaExchange
                         currentOrderAmount = order.MyExchangeInfo.BalanceEUR / order.Price;
                         currentOrderValue = order.MyExchangeInfo.BalanceEUR;
                     }
+
                     order.MyExchangeInfo.BalanceEUR -= currentOrderValue;
                     order.MyExchangeInfo.BalanceBTC += currentOrderAmount;
+                    _asks.Dequeue();
+
                     if (order.Amount > currentOrderAmount)
                     {
                         order.Amount -= currentOrderAmount;
                         amount -= currentOrderAmount;
+                        _asks.Enqueue(order, order);
                     }
                     else
                     {
                         amount -= order.Amount;
-                        _asks.Dequeue();
                     }
 
                     orders.Add(new ExchangeOrder { Amount = currentOrderAmount, Price = order.Price, Type = ExchangeOrder.OrderType.Buy });
@@ -92,7 +114,16 @@ namespace MetaExchange
 
             do
             {
-                var order = _bids.Peek();
+                ExchangeOrder order;
+                try
+                {
+                    order = _bids.Peek();
+                }
+                catch (InvalidOperationException)
+                {
+                    break;
+                }
+
                 if (order.MyExchangeInfo.BalanceBTC > 0.0)
                 {
                     var currentOrderAmount = Math.Min(order.Amount, amount);
@@ -104,15 +135,17 @@ namespace MetaExchange
 
                     order.MyExchangeInfo.BalanceEUR += currentOrderValue;
                     order.MyExchangeInfo.BalanceBTC -= currentOrderAmount;
+                    _bids.Dequeue();
+
                     if (order.Amount > currentOrderAmount)
                     {
                         order.Amount -= currentOrderAmount;
                         amount -= currentOrderAmount;
+                        _bids.Enqueue(order, order);
                     }
                     else
                     {
                         amount -= order.Amount;
-                        _bids.Dequeue();
                     }
 
                     orders.Add(new ExchangeOrder { Amount = currentOrderAmount, Price = order.Price, Type = ExchangeOrder.OrderType.Sell });
