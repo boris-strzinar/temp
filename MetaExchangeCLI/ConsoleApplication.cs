@@ -54,7 +54,7 @@ namespace MetaExchangeCLI
 
             if (opts.BuyAmount > 0)
             {
-                (var remainingAmount, var myOrders) = _orderBookService.Buy(opts.BuyAmount);
+                var (remainingAmount, myOrders) = _orderBookService.Buy(opts.BuyAmount);
 
                 Console.WriteLine(JsonConvert.SerializeObject(myOrders, Formatting.Indented));
                 if (remainingAmount > 0.0)
@@ -64,7 +64,7 @@ namespace MetaExchangeCLI
             }
             else if (opts.SellAmount > 0)
             {
-                (var remainingAmount, var myOrders) = _orderBookService.Sell(opts.SellAmount);
+                var (remainingAmount, myOrders) = _orderBookService.Sell(opts.SellAmount);
 
                 Console.WriteLine(JsonConvert.SerializeObject(myOrders, Formatting.Indented));
                 if (remainingAmount > 0.0)
