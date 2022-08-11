@@ -8,10 +8,15 @@ namespace MetaExchange
         private OrderPriorityQueue _asks;
         private OrderPriorityQueue _bids;
 
-        public OrderBookService()
+        public OrderBookService(string? filePath = null, long limit = 0)
         {
             _asks = new OrderPriorityQueue();
             _bids = new OrderPriorityQueue();
+
+            if (filePath != null)
+            {
+                ReadOrderBookDataFile(filePath, limit);
+            }
         }
 
         public OrderBookService(OrderPriorityQueue asks, OrderPriorityQueue bids)
